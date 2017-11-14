@@ -88,6 +88,11 @@ test(`resolves an env variable value for non-existant variable`, () => {
   expect(varValueConvert('foo-$VAR_POTATO')).toBe('foo-')
 })
 
+test(`resolves a default env variable value`, () => {
+  isWindowsMock.__mock.returnValue = true
+  expect(varValueConvert('${foo:-test}')).toBe('test')
+})
+
 test(`resolves an env variable with a JSON string value on Windows`, () => {
   isWindowsMock.__mock.returnValue = true
   expect(varValueConvert('$JSON_VAR')).toBe(JSON_VALUE)

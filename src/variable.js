@@ -40,18 +40,24 @@ function replaceListDelimiters(varValue, varName = '') {
  * @returns {String} Converted value
  */
 function resolveEnvVars(varValue) {
-  const envUnixRegex = /(\\*)(\$(\w+)|\${(\w+)})/g // $my_var or ${my_var} or \$my_var
+  const envUnixRegex = /(\\*)(\$(\w+)|\${(\w+)(:-(\w+))?})/g // $my_var or ${my_var} or \$my_var
   return varValue.replace(
     envUnixRegex,
-    (_, escapeChars, varNameWithDollarSign, varName, altVarName) => {
+    (_, escapeChars, varNameWithDollarSign, ...args) => {
+      const [varName, altVarName, , defaultValue] = args
+
       // do not replace things preceded by a odd number of \
       if (escapeChars.length % 2 === 1) {
         return varNameWithDollarSign
       }
-      return (
-        escapeChars.substr(0, escapeChars.length / 2) +
-        (process.env[varName || altVarName] || '')
-      )
+
+      const envValue = process.env[varName || altVarName]
+
+      if (!envValue && defaultValue) {
+        return escapeChars.substr(0, escapeChars.length / 2) + defaultValue
+      }
+
+      return escapeChars.substr(0, escapeChars.length / 2) + (envValue || '')
     },
   )
 }
